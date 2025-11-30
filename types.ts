@@ -2,6 +2,14 @@
 export type Role = 'student' | 'admin';
 export type AppStatus = 'pending' | 'approved' | 'rejected';
 
+export interface EmergencyInfo {
+  contactName: string;
+  contactPhone: string;
+  managerName: string;
+  managerPhone: string;
+  managerEmail: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -10,6 +18,7 @@ export interface User {
   school?: string;
   score: number; // 0-10, immutable by student
   avatar: string;
+  emergencyInfo?: EmergencyInfo;
 }
 
 export interface Job {
@@ -23,6 +32,7 @@ export interface Job {
   tags: string[]; // e.g., 'Lifeguard', 'Housekeeping'
   image: string; // Cover image URL
   capacity: number; // Max students
+  publishDate: string; // ISO String for sorting
 }
 
 export interface Application {
@@ -33,10 +43,19 @@ export interface Application {
   timestamp: string;
 }
 
+export interface Feedback {
+  id: string;
+  studentId: string;
+  jobId: string;
+  option: string; // 'Smooth', 'Housing', 'Work', 'Other'
+  timestamp: string;
+}
+
 export interface DbState {
   users: User[];
   jobs: Job[];
   applications: Application[];
+  feedbacks: Feedback[];
   currentUser: User | null;
 }
 

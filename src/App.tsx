@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User as UserType, Job, Application, DbState, Role, Feedback, EmergencyInfo, CustomContact, Guide } from './types';
 import TabBar from './components/TabBar';
@@ -9,7 +8,8 @@ import {
   Users, Edit2, Save, X, XCircle,
   Smartphone, ShieldCheck, Building2, User, Video, PlayCircle, Clock,
   Filter, Download, Phone, ShieldAlert, MessageSquare, Calendar,
-  ClipboardList, Briefcase, Plus, BookOpen, FileText
+  ClipboardList, Briefcase, Plus, BookOpen, FileText,
+  Image as ImageIcon, Upload, Link as LinkIcon
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -448,6 +448,19 @@ const App: React.FC = () => {
           ...prev,
           guides: prev.guides.filter(g => g.id !== id)
       }));
+  };
+  
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+            setNewJob(prev => ({...prev, image: event.target!.result as string}));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // --- 辅助函数 ---
@@ -1512,16 +1525,46 @@ const App: React.FC = () => {
                    <textarea value={newJob.description || ''} onChange={e => setNewJob({...newJob, description: e.target.value})} className="w-full text-sm text-slate-600 outline-none resize-none h-40" placeholder="Enter full job details here..." />
                </div>
                
-               <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <label className="text-xs text-slate-400 block mb-1">Cover Image URL</label>
-                    <input className="w-full text-sm font-semibold text-slate-700 outline-none" placeholder="https://..." value={newJob.image || ''} onChange={e => setNewJob({...newJob, image: e.target.value})} />
-               </div>
+               <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Cover Image</label>
+                   
+                   {/* Preview Area */}
+                   {newJob.image ? (
+                       <div className="relative w-full h-40 rounded-xl overflow-hidden mb-3 group">
+                           <img src={newJob.image} className="w-full h-full object-cover" alt="Preview" />
+                           <button 
+                               onClick={() => setNewJob({...newJob, image: ''})}
+                               className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full hover:bg-red-500 transition-colors"
+                           >
+                               <X size={16} />
+                           </button>
+                       </div>
+                   ) : (
+                       <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 mb-3">
+                           <ImageIcon size={32} className="mb-2 opacity-50"/>
+                           <span className="text-xs font-bold">No Image Selected</span>
+                       </div>
+                   )}
 
-               {!!newJob.image && (
-                   <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
-                        <img src={newJob.image} className="w-full h-40 object-cover rounded-xl" alt="Preview" />
+                   <div className="flex gap-2 mb-3">
+                       {/* File Input */}
+                       <label className="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200 transition-colors">
+                           <Upload size={16} className="mr-2"/>
+                           Upload
+                           <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                       </label>
                    </div>
-               )}
+                   
+                   <div className="relative">
+                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><LinkIcon size={14}/></span>
+                       <input 
+                          className="w-full bg-slate-50 pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium text-slate-600 outline-none border border-transparent focus:border-blue-200 focus:bg-white transition-colors" 
+                          placeholder="Or paste image URL..." 
+                          value={newJob.image?.startsWith('data:') ? '' : newJob.image || ''} 
+                          onChange={e => setNewJob({...newJob, image: e.target.value})} 
+                       />
+                   </div>
+               </div>
 
                <div className="grid grid-cols-2 gap-4">
                    <div className="bg-white p-3 rounded-xl border border-slate-100">

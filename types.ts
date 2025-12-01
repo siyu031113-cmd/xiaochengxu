@@ -2,12 +2,20 @@
 export type Role = 'student' | 'admin';
 export type AppStatus = 'pending' | 'approved' | 'rejected';
 
+export interface CustomContact {
+  id: string;
+  name: string;
+  phone: string;
+  role: string; // e.g. 'Friend', 'Insurance'
+}
+
 export interface EmergencyInfo {
   contactName: string;
   contactPhone: string;
   managerName: string;
   managerPhone: string;
   managerEmail: string;
+  others?: CustomContact[];
 }
 
 export interface User {
@@ -51,11 +59,19 @@ export interface Feedback {
   timestamp: string;
 }
 
+export interface Guide {
+  id: string;
+  title: string;
+  content: string; // Markdown supported
+  updateDate: string;
+}
+
 export interface DbState {
   users: User[];
   jobs: Job[];
   applications: Application[];
   feedbacks: Feedback[];
+  guides: Guide[]; // New: Dynamic guides
   currentUser: User | null;
 }
 

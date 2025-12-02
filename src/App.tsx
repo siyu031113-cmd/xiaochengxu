@@ -535,13 +535,16 @@ const App: React.FC = () => {
                          <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors"><ShieldCheck size={18} className="text-gray-400 mr-3"/><input className="bg-transparent outline-none text-sm w-full" placeholder="验证码 (1234)" value={regForm.code} onChange={e => setRegForm({...regForm, code: e.target.value})}/></div>
                          <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors"><Star size={18} className="text-gray-400 mr-3"/><input type="number" step="0.5" max="10" className="bg-transparent outline-none text-sm w-full" placeholder="预估英语评分 (6-10)" value={regForm.score} onChange={e => setRegForm({...regForm, score: e.target.value})}/></div>
                          <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors">
-                            <Calendar size={18} className="text-gray-400 mr-3"/>
-                            <select className="bg-transparent outline-none text-sm w-full text-slate-700" value={regForm.programYear} onChange={e => setRegForm({...regForm, programYear: e.target.value})}>
-                                <option value="2023">2023 Program</option>
-                                <option value="2024">2024 Program</option>
-                                <option value="2025">2025 Program</option>
-                                <option value="2026">2026 Program</option>
-                            </select>
+                            <CalendarDays size={18} className="text-gray-400 mr-3 shrink-0"/>
+                            <div className="flex-1">
+                                <label className="text-[10px] text-gray-400 font-bold uppercase block mb-0.5">Intended Program Year</label>
+                                <select className="bg-transparent outline-none text-sm w-full text-slate-700 font-bold" value={regForm.programYear} onChange={e => setRegForm({...regForm, programYear: e.target.value})}>
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                </select>
+                            </div>
                          </div>
                      </div>
                      <button onClick={handleRegister} className="w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-200 active:scale-95 transition-transform mt-2">立即注册</button><button onClick={() => setActiveTab('login')} className="w-full text-slate-400 text-xs py-2">返回登录</button>
@@ -707,23 +710,27 @@ const App: React.FC = () => {
              <div className="h-64 relative shrink-0 z-10">
                  <img src={job.image} className="w-full h-full object-cover" alt={job.title}/>
                  <button onClick={() => setSelectedJobId(null)} className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 z-10"><ChevronRight className="rotate-180" size={24}/></button>
-                 {/* ENGLISH WATERMARK AS REQUESTED */}
-                 <div className="absolute top-20 right-[-20px] z-20 pointer-events-none opacity-30 rotate-[-15deg]">
-                    <div className="text-4xl font-black text-white tracking-tighter border-4 border-white p-2 rounded-xl">
-                        BLUEPRINT
-                        <div className="text-sm tracking-[0.5em] text-center">GLOBAL</div>
-                    </div>
-                 </div>
                  <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
              </div>
+             
              <div className="flex-1 px-6 -mt-12 relative overflow-y-auto pb-24 z-10">
-                 <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-1 mb-4">
+                 <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-1 mb-4 relative overflow-hidden">
+                     {/* HIGH VISIBILITY ENGLISH WATERMARK IN CONTENT CARD */}
+                     <div className="absolute -top-4 -right-4 pointer-events-none rotate-12 z-0 opacity-10">
+                         <div className="border-[6px] border-blue-900 rounded-full w-40 h-40 flex items-center justify-center">
+                             <div className="text-center">
+                                <div className="text-xl font-black text-blue-900">BLUEPRINT</div>
+                                <div className="text-xs font-bold text-blue-900 tracking-widest">GLOBAL</div>
+                             </div>
+                         </div>
+                     </div>
+
                      <div className="flex justify-between items-start mb-2"><div className="flex flex-wrap gap-2">{job.tags.map(t => <span key={t} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg">{t}</span>)}<span className="px-2 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg">{job.programYear} Program</span></div></div>
-                     <h1 className="text-3xl font-bold text-slate-900 leading-tight mb-2">{job.title}</h1>
+                     <h1 className="text-3xl font-bold text-slate-900 leading-tight mb-2 relative z-10">{job.title}</h1>
                      <div className="flex items-center text-slate-500 font-medium text-sm mb-6"><Building2 size={16} className="mr-1"/> {job.company}</div>
-                     <div className="grid grid-cols-2 gap-3 mb-6"><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100"><div className="text-slate-400 text-xs font-bold uppercase mb-1">Salary</div><div className="text-slate-800 font-bold">{job.salary}</div></div><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100"><div className="text-slate-400 text-xs font-bold uppercase mb-1">Housing</div><div className="text-slate-800 font-bold truncate">{job.housing || 'N/A'}</div></div><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 col-span-2 flex items-center justify-between"><div><div className="text-slate-400 text-xs font-bold uppercase mb-1">Start Dates</div><div className="text-slate-800 font-bold">{job.startDateRange}</div></div><div className="text-right"><div className="text-slate-400 text-xs font-bold uppercase mb-1">End Date</div><div className="text-slate-800 font-bold">{job.endDate}</div></div></div><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 col-span-2"><div className="text-slate-400 text-xs font-bold uppercase mb-1">Location</div><div className="text-slate-800 font-bold flex items-start"><MapPin size={14} className="mr-1 mt-0.5 shrink-0"/> {job.location}</div></div></div>
-                     <h3 className="font-bold text-lg text-slate-800 mb-3">Job Description</h3>
-                     <div className="prose prose-slate prose-sm text-slate-600 mb-10 leading-relaxed"><ReactMarkdown>{job.description}</ReactMarkdown></div>
+                     <div className="grid grid-cols-2 gap-3 mb-6 relative z-10"><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100"><div className="text-slate-400 text-xs font-bold uppercase mb-1">Salary</div><div className="text-slate-800 font-bold">{job.salary}</div></div><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100"><div className="text-slate-400 text-xs font-bold uppercase mb-1">Housing</div><div className="text-slate-800 font-bold truncate">{job.housing || 'N/A'}</div></div><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 col-span-2 flex items-center justify-between"><div><div className="text-slate-400 text-xs font-bold uppercase mb-1">Start Dates</div><div className="text-slate-800 font-bold">{job.startDateRange}</div></div><div className="text-right"><div className="text-slate-400 text-xs font-bold uppercase mb-1">End Date</div><div className="text-slate-800 font-bold">{job.endDate}</div></div></div><div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 col-span-2"><div className="text-slate-400 text-xs font-bold uppercase mb-1">Location</div><div className="text-slate-800 font-bold flex items-start"><MapPin size={14} className="mr-1 mt-0.5 shrink-0"/> {job.location}</div></div></div>
+                     <h3 className="font-bold text-lg text-slate-800 mb-3 relative z-10">Job Description</h3>
+                     <div className="prose prose-slate prose-sm text-slate-600 mb-10 leading-relaxed relative z-10"><ReactMarkdown>{job.description}</ReactMarkdown></div>
                  </div>
              </div>
              <div className="absolute bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t border-slate-100 p-4 safe-area-pb z-20">

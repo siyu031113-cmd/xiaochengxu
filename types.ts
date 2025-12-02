@@ -41,6 +41,12 @@ export interface Job {
   image: string; // Cover image URL
   capacity: number; // Max students
   publishDate: string; // ISO String for sorting
+  
+  // New Fields
+  housing: string; // e.g. "$150/week" or "Provided"
+  startDateRange: string; // e.g. "Jun 15 - Jun 30"
+  endDate: string; // Fixed to Sept 15 usually
+  programYear: string; // e.g. "2024"
 }
 
 export interface Application {
@@ -71,7 +77,7 @@ export interface DbState {
   jobs: Job[];
   applications: Application[];
   feedbacks: Feedback[];
-  guides: Guide[]; // New: Dynamic guides
+  guides: Guide[];
   currentUser: User | null;
 }
 

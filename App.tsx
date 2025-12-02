@@ -9,11 +9,12 @@ import {
   Users, Edit2, Save, X, XCircle,
   Smartphone, ShieldCheck, Building2, User, Video, PlayCircle, Clock,
   Filter, Download, Phone, ShieldAlert, MessageSquare, Calendar,
-  ClipboardList, Briefcase, Plus, BookOpen, FileText
+  ClipboardList, Briefcase, Plus, BookOpen, FileText,
+  Image as ImageIcon, Upload, Link as LinkIcon, CalendarDays
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-// --- 品牌水印组件 ---
+// --- 品牌水印组件 (小) ---
 const BrandingWatermark = ({ className = "" }: { className?: string }) => (
   <div className={`flex flex-col items-center justify-center opacity-30 pointer-events-none py-6 select-none ${className}`}>
      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center">
@@ -36,7 +37,11 @@ const INITIAL_JOBS: Job[] = [
     tags: ['Lifeguard', 'Theme Park'],
     image: 'https://images.unsplash.com/photo-1575263629043-f93335501dc6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     capacity: 10,
-    publishDate: '2023-11-01T10:00:00Z'
+    publishDate: '2023-11-01T10:00:00Z',
+    housing: '$100/week',
+    startDateRange: 'Jun 10 - Jun 25',
+    endDate: 'Sept 15',
+    programYear: '2024'
   },
   { 
     id: 'j2', 
@@ -49,7 +54,11 @@ const INITIAL_JOBS: Job[] = [
     tags: ['Restaurant', 'Cooking'],
     image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     capacity: 5,
-    publishDate: '2023-11-05T14:00:00Z'
+    publishDate: '2023-11-05T14:00:00Z',
+    housing: 'Provided (Free)',
+    startDateRange: 'May 20 - Jun 10',
+    endDate: 'Sept 15',
+    programYear: '2024'
   },
   { 
     id: 'j3', 
@@ -62,7 +71,11 @@ const INITIAL_JOBS: Job[] = [
     tags: ['Hospitality', 'National Park'],
     image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     capacity: 20,
-    publishDate: '2023-10-25T09:00:00Z'
+    publishDate: '2023-10-25T09:00:00Z',
+    housing: '$75/week',
+    startDateRange: 'Jun 01 - Jun 15',
+    endDate: 'Sept 15',
+    programYear: '2025'
   },
 ];
 
@@ -91,9 +104,9 @@ const App: React.FC = () => {
   // --- UI 状态 ---
   const [activeTab, setActiveTab] = useState<string>('login'); 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [adminDetailJobId, setAdminDetailJobId] = useState<string | null>(null); // For Admin specific view
+  const [adminDetailJobId, setAdminDetailJobId] = useState<string | null>(null);
   const [adminSubTab, setAdminSubTab] = useState<'applicants' | 'feedback'>('applicants');
-  const [viewingStudent, setViewingStudent] = useState<UserType | null>(null); // For Admin to view student details
+  const [viewingStudent, setViewingStudent] = useState<UserType | null>(null);
   
   // Guide Management State
   const [editingGuide, setEditingGuide] = useState<Partial<Guide> | null>(null);
@@ -107,7 +120,10 @@ const App: React.FC = () => {
   const [isCodeSent, setIsCodeSent] = useState(false);
 
   // 发布岗位表单状态
-  const [newJob, setNewJob] = useState<Partial<Job>>({ title: '', minScore: 6, location: 'USA', salary: '', tags: [], capacity: 5 });
+  const [newJob, setNewJob] = useState<Partial<Job>>({ 
+    title: '', minScore: 6, location: 'USA', salary: '', tags: [], capacity: 5,
+    housing: '', startDateRange: '', endDate: 'Sept 15', programYear: new Date().getFullYear().toString()
+  });
   
   // 个人中心编辑状态
   const [editingProfile, setEditingProfile] = useState<Partial<UserType> | null>(null);
@@ -215,7 +231,6 @@ const App: React.FC = () => {
     }));
   };
 
-  // Allows Admin to force change status at any time
   const handleStatusChange = (appId: string, newStatus: string) => {
       setDb(prev => ({
           ...prev,
@@ -236,8 +251,8 @@ const App: React.FC = () => {
   };
 
   const handlePostJob = () => {
-    if (!newJob.title || !newJob.description) {
-        alert("请填写完整岗位信息");
+    if (!newJob.title || !newJob.description || !newJob.housing || !newJob.startDateRange) {
+        alert("请填写完整岗位信息 (包括住宿、开始时间)");
         return;
     }
     const job: Job = {
@@ -251,11 +266,18 @@ const App: React.FC = () => {
       tags: newJob.tags?.length ? newJob.tags : ['Summer Job'],
       image: newJob.image || 'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
       capacity: newJob.capacity || 5,
-      publishDate: new Date().toISOString()
+      publishDate: new Date().toISOString(),
+      housing: newJob.housing || 'Provided',
+      startDateRange: newJob.startDateRange || 'June 1 - June 15',
+      endDate: 'Sept 15',
+      programYear: newJob.programYear || '2024'
     };
     setDb(prev => ({ ...prev, jobs: [job, ...prev.jobs] }));
     setActiveTab('admin-home');
-    setNewJob({ title: '', minScore: 6, location: 'USA', salary: '', tags: [], capacity: 5 });
+    setNewJob({ 
+        title: '', minScore: 6, location: 'USA', salary: '', tags: [], capacity: 5,
+        housing: '', startDateRange: '', endDate: 'Sept 15', programYear: new Date().getFullYear().toString()
+    });
   };
 
   const handleGeneratePromoVideo = async () => {
@@ -358,7 +380,6 @@ const App: React.FC = () => {
   };
 
   const exportJobData = (jobId: string, jobTitle: string) => {
-     // Filter last 3 months
      const threeMonthsAgo = new Date();
      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
      
@@ -405,7 +426,6 @@ const App: React.FC = () => {
       ...prev,
       users: prev.users.map(u => u.id === userId ? { ...u, score: newScore } : u)
     }));
-    // Update the local viewing state as well
     if (viewingStudent && viewingStudent.id === userId) {
         setViewingStudent({ ...viewingStudent, score: newScore });
     }
@@ -427,13 +447,11 @@ const App: React.FC = () => {
       };
 
       if (editingGuide.id) {
-          // Update existing
           setDb(prev => ({
               ...prev,
               guides: prev.guides.map(g => g.id === newGuide.id ? newGuide : g)
           }));
       } else {
-          // Add new
           setDb(prev => ({
               ...prev,
               guides: [...prev.guides, newGuide]
@@ -448,6 +466,19 @@ const App: React.FC = () => {
           ...prev,
           guides: prev.guides.filter(g => g.id !== id)
       }));
+  };
+  
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+            setNewJob(prev => ({...prev, image: event.target!.result as string}));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // --- 辅助函数 ---
@@ -475,7 +506,6 @@ const App: React.FC = () => {
 
   // --- 页面渲染 ---
 
-  // RENDER: Admin - Home (Dashboard)
   const renderAdminHome = () => {
     let sortedJobs = [...db.jobs];
     if (adminSortBy === 'applicants') {
@@ -502,7 +532,6 @@ const App: React.FC = () => {
             </div>
         </header>
 
-        {/* Admin Shortcuts */}
         <div className="grid grid-cols-2 gap-3 mb-2">
             <button onClick={() => setActiveTab('admin-guides')} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center space-x-2 active:scale-95 transition-transform">
                 <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
@@ -524,7 +553,7 @@ const App: React.FC = () => {
             </button>
         </div>
 
-        <h3 className="text-lg font-bold text-slate-800 mt-4 mb-2">Active Jobs</h3>
+        <h3 className="text-lg font-bold text-slate-800 mt-4 mb-2">Active Jobs ({db.jobs.length})</h3>
         <div className="space-y-4">
             {sortedJobs.map((job, idx) => {
                 const stats = getJobStats(job.id);
@@ -539,7 +568,10 @@ const App: React.FC = () => {
                                     <h3 className="font-bold text-slate-800 truncate pr-6">{job.title}</h3>
                                 </div>
                                 <div className="text-xs font-mono text-blue-500 bg-blue-50 inline-block px-1.5 py-0.5 rounded mt-1 mb-1">#{jobCode}</div>
-                                <p className="text-xs text-slate-500 truncate">{job.company}</p>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-xs text-slate-500 truncate max-w-[120px]">{job.company}</p>
+                                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 rounded">{job.programYear}</span>
+                                </div>
                             </div>
                         </div>
                         
@@ -575,7 +607,6 @@ const App: React.FC = () => {
     );
   };
 
-  // RENDER: Admin - Guide Management
   const renderAdminGuides = () => {
       return (
           <div className="p-4 space-y-5 pb-24 overflow-y-auto h-full bg-slate-50">
@@ -683,7 +714,6 @@ const App: React.FC = () => {
       );
   };
   
-  // RENDER: Admin - Student List
   const renderAdminStudents = () => {
     const students = db.users.filter(u => u.role === 'student');
     const filteredStudents = students.filter(s => 
@@ -710,7 +740,6 @@ const App: React.FC = () => {
 
         <div className="space-y-3">
             {filteredStudents.map(student => {
-                // Find current active application or latest application
                 const activeApp = db.applications.find(a => a.studentId === student.id && (a.status === 'pending' || a.status === 'approved'));
                 const lastApp = db.applications.filter(a => a.studentId === student.id).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
                 const displayApp = activeApp || lastApp;
@@ -742,7 +771,6 @@ const App: React.FC = () => {
                                 <div className="text-xs text-slate-500 flex items-center mb-1">
                                     <Building2 size={12} className="mr-1"/> {student.school}
                                 </div>
-                                {/* Show Job Info */}
                                 {appliedJob ? (
                                     <div className="flex items-center text-xs font-medium text-slate-600">
                                         <Briefcase size={12} className="mr-1" />
@@ -773,13 +801,10 @@ const App: React.FC = () => {
     );
   };
 
-  // RENDER: Global Student Modal
   const renderStudentModal = () => {
     if (!viewingStudent) return null;
 
     const isAdmin = db.currentUser?.role === 'admin';
-
-    // Find current application context
     const activeApp = db.applications.find(a => a.studentId === viewingStudent.id && (a.status === 'pending' || a.status === 'approved'));
     const lastApp = db.applications.filter(a => a.studentId === viewingStudent.id).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
     const displayApp = activeApp || lastApp;
@@ -804,7 +829,6 @@ const App: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* Job Application Status Section */}
                     <div className="mb-6">
                         <div className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center"><Briefcase size={14} className="mr-1"/> Job Application</div>
                         {displayApp && appliedJob ? (
@@ -836,7 +860,6 @@ const App: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Admin Actions: Edit Score */}
                     {isAdmin && (
                         <div className="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-100">
                              <div className="flex justify-between items-center mb-2">
@@ -900,7 +923,6 @@ const App: React.FC = () => {
                                     <span className="text-sm font-bold text-slate-800">{viewingStudent.emergencyInfo?.managerName || 'N/A'}</span>
                                 </div>
                                 
-                                {/* Dynamic Contacts View in Modal */}
                                 {viewingStudent.emergencyInfo?.others?.map(contact => (
                                     <div key={contact.id} className="flex justify-between border-t border-red-100 pt-2">
                                         <span className="text-xs text-red-400 font-bold">{contact.role || 'Other'}</span>
@@ -915,7 +937,6 @@ const App: React.FC = () => {
                     </div>
                 </div>
                 
-                {/* Admin Danger Zone */}
                 {isAdmin && (
                     <div className="p-4 border-t border-slate-100 bg-slate-50">
                         <button 
@@ -931,7 +952,6 @@ const App: React.FC = () => {
     );
   };
 
-  // RENDER: Admin - Specific Job Detail (For Management)
   const renderAdminJobDetail = () => {
       const job = db.jobs.find(j => j.id === adminDetailJobId);
       if(!job) return null;
@@ -971,7 +991,6 @@ const App: React.FC = () => {
              <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4">
                  {adminSubTab === 'applicants' && (
                      <>
-                        {/* Batch Actions */}
                         {apps.some(a => a.status === 'pending') && (
                             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                                 <h3 className="text-xs font-bold text-slate-800 mb-3 flex items-center uppercase tracking-wider"><Filter size={14} className="mr-2"/> Batch Pending</h3>
@@ -982,7 +1001,6 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Application List */}
                         <div className="space-y-3">
                             {apps.map(app => {
                                 const student = db.users.find(u => u.id === app.studentId);
@@ -1060,227 +1078,7 @@ const App: React.FC = () => {
           </div>
       );
   };
-
-  // RENDER: Student - Services (Hub for Emergency & Tools)
-  const renderStudentServices = () => {
-    return (
-      <div className="p-4 space-y-5 pb-24 bg-slate-50 h-full overflow-y-auto">
-          <header className="px-1 pt-2">
-            <h2 className="text-2xl font-bold text-slate-900">Services</h2>
-            <p className="text-slate-500 text-sm">Essential tools for your trip.</p>
-          </header>
-
-          <div className="grid grid-cols-1 gap-4">
-              <button onClick={() => setActiveTab('emergency')} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center space-y-3 active:scale-95 transition-transform">
-                  <div className="w-12 h-12 bg-red-100 text-red-500 rounded-2xl flex items-center justify-center">
-                      <ShieldAlert size={28} />
-                  </div>
-                  <span className="font-bold text-slate-800">Emergency Card</span>
-              </button>
-          </div>
-
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-              <h3 className="font-bold text-slate-800 mb-3">Pre-Departure Guide</h3>
-              <div className="space-y-3">
-                  {db.guides.map((guide) => (
-                      <div 
-                          key={guide.id} 
-                          onClick={() => setViewingGuide(guide)}
-                          className="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer active:scale-[0.98] transition-transform"
-                      >
-                          <span className="text-sm font-medium text-slate-700">{guide.title}</span>
-                          <ChevronRight size={16} className="text-slate-400"/>
-                      </div>
-                  ))}
-                  {db.guides.length === 0 && (
-                      <div className="text-center text-slate-400 py-4 text-xs">No guides available.</div>
-                  )}
-              </div>
-          </div>
-      </div>
-    );
-  };
-
-  // RENDER: Student - Emergency Card
-  const renderEmergencyCard = () => {
-    return (
-      <div className="flex flex-col h-full bg-slate-50">
-          <div className="bg-red-600 text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10 shrink-0">
-             <div className="flex items-center mb-6">
-                 <button onClick={() => setActiveTab('services')} className="mr-3 bg-white/20 p-2 rounded-full backdrop-blur-sm"><ChevronRight className="rotate-180" size={20}/></button>
-                 <h2 className="text-2xl font-bold">Emergency Card</h2>
-             </div>
-             <p className="opacity-90 text-sm mb-4">Access these contacts offline.</p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-5 -mt-6 pt-10 space-y-6">
-              {/* Local Emergency Numbers */}
-              <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Local Emergency</h3>
-                  <div className="space-y-3">
-                      {[
-                          { name: 'Police / Ambulance', num: '911' },
-                          { name: 'Chinese Consulate', num: '+1-202-495-2266' }
-                      ].map(item => (
-                          <div key={item.num} className="flex items-center justify-between p-3 bg-red-50 rounded-2xl border border-red-100">
-                              <div>
-                                  <div className="font-bold text-slate-800">{item.name}</div>
-                                  <div className="text-red-500 font-mono font-bold">{item.num}</div>
-                              </div>
-                              <a href={`tel:${item.num}`} className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-transform">
-                                  <Phone size={20}/>
-                              </a>
-                          </div>
-                      ))}
-                  </div>
-              </div>
-
-              {/* Personal Contacts */}
-              <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative">
-                  <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Contacts</h3>
-                      <button onClick={() => editingEmergency ? handleSaveEmergency() : setEditingEmergency(true)} className="text-blue-600 text-xs font-bold">
-                          {editingEmergency ? 'Save' : 'Edit'}
-                      </button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                      <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-700">Family / Emergency Contact</label>
-                          <input disabled={!editingEmergency} placeholder="Name" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.contactName} onChange={e => setEmergencyForm({...emergencyForm, contactName: e.target.value})} />
-                          <input disabled={!editingEmergency} placeholder="Phone (+86...)" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.contactPhone} onChange={e => setEmergencyForm({...emergencyForm, contactPhone: e.target.value})} />
-                      </div>
-                      <div className="w-full h-px bg-slate-100 my-2"></div>
-                      <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-700">US Employer / Manager</label>
-                          <input disabled={!editingEmergency} placeholder="Manager Name" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.managerName} onChange={e => setEmergencyForm({...emergencyForm, managerName: e.target.value})} />
-                          <input disabled={!editingEmergency} placeholder="US Phone" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.managerPhone} onChange={e => setEmergencyForm({...emergencyForm, managerPhone: e.target.value})} />
-                          <input disabled={!editingEmergency} placeholder="Email" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.managerEmail} onChange={e => setEmergencyForm({...emergencyForm, managerEmail: e.target.value})} />
-                      </div>
-                      
-                      <div className="w-full h-px bg-slate-100 my-2"></div>
-                      <div className="space-y-2">
-                         <div className="flex justify-between items-center">
-                            <label className="text-xs font-bold text-slate-700">Additional Contacts</label>
-                            {editingEmergency && (
-                                <button onClick={handleAddCustomContact} className="text-xs flex items-center text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">
-                                    <Plus size={12} className="mr-1"/> Add
-                                </button>
-                            )}
-                         </div>
-                         
-                         {emergencyForm.others?.map((contact, idx) => (
-                             <div key={contact.id} className="bg-slate-50 p-3 rounded-xl space-y-2 relative">
-                                 {editingEmergency ? (
-                                    <>
-                                        <button onClick={() => handleRemoveCustomContact(contact.id)} className="absolute top-2 right-2 text-red-400 p-1"><X size={14}/></button>
-                                        <input placeholder="Name" className="w-full bg-white p-2 rounded-lg text-sm border border-slate-200 outline-none" value={contact.name} onChange={e => handleUpdateCustomContact(contact.id, 'name', e.target.value)} />
-                                        <div className="flex gap-2">
-                                            <input placeholder="Phone" className="flex-1 bg-white p-2 rounded-lg text-sm border border-slate-200 outline-none" value={contact.phone} onChange={e => handleUpdateCustomContact(contact.id, 'phone', e.target.value)} />
-                                            <input placeholder="Role (e.g. Friend)" className="flex-1 bg-white p-2 rounded-lg text-sm border border-slate-200 outline-none" value={contact.role} onChange={e => handleUpdateCustomContact(contact.id, 'role', e.target.value)} />
-                                        </div>
-                                    </>
-                                 ) : (
-                                     <div className="flex justify-between items-center">
-                                         <div>
-                                            <div className="font-bold text-sm text-slate-800">{contact.name}</div>
-                                            <div className="text-xs text-slate-500">{contact.role}</div>
-                                         </div>
-                                         <div className="flex items-center gap-2">
-                                             <div className="text-right">
-                                                <div className="text-sm font-bold text-slate-700">{contact.phone}</div>
-                                             </div>
-                                             <a href={`tel:${contact.phone}`} className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
-                                                <Phone size={14}/>
-                                             </a>
-                                         </div>
-                                     </div>
-                                 )}
-                             </div>
-                         ))}
-                         {(!emergencyForm.others || emergencyForm.others.length === 0) && !editingEmergency && (
-                             <div className="text-center text-xs text-slate-400 py-2">No additional contacts.</div>
-                         )}
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-    );
-  };
-
-  // RENDER: Student - Internship Applications & Feedback
-  const renderApplications = () => {
-      const myApps = db.applications.filter(a => a.studentId === db.currentUser?.id);
-
-      return (
-        <div className="p-4 space-y-5 pb-24 h-full overflow-y-auto bg-slate-50">
-            <header className="px-1 pt-2">
-                <h2 className="text-2xl font-bold text-slate-900">My Internship</h2>
-            </header>
-            <div className="space-y-4">
-                {myApps.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400">No applications yet.</div>
-                ) : (
-                    myApps.map(app => {
-                        const job = db.jobs.find(j => j.id === app.jobId);
-                        if (!job) return null;
-                        const statusColors: Record<string, string> = {
-                            pending: 'bg-yellow-50 text-yellow-600 border-yellow-100',
-                            approved: 'bg-green-50 text-green-600 border-green-100',
-                            rejected: 'bg-red-50 text-red-600 border-red-100'
-                        };
-                        const isApproved = app.status === 'approved';
-
-                        return (
-                            <div 
-                                key={app.id} 
-                                onClick={() => setSelectedJobId(job.id)}
-                                className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 active:scale-[0.98] transition-transform cursor-pointer group relative overflow-hidden"
-                            >
-                                <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <ChevronRight size={24}/>
-                                </div>
-                                <div className="flex justify-between items-start mb-3">
-                                    <div>
-                                        <h3 className="font-bold text-slate-800">{job.title}</h3>
-                                        <p className="text-xs text-slate-500">{job.company}</p>
-                                    </div>
-                                    <div className={`px-2 py-1 rounded-lg text-xs font-bold border ${statusColors[app.status]}`}>
-                                        {app.status.toUpperCase()}
-                                    </div>
-                                </div>
-                                <div className="flex items-center text-xs text-slate-400 mt-2 pt-2 border-t border-slate-50">
-                                    <Clock size={12} className="mr-1"/>
-                                    Applied on {new Date(app.timestamp).toLocaleDateString()}
-                                </div>
-
-                                {/* Weekly Feedback Section for Approved Jobs */}
-                                {isApproved && (
-                                    <div className="mt-4 bg-slate-50 rounded-xl p-3" onClick={(e) => e.stopPropagation()}>
-                                        <div className="text-xs font-bold text-slate-500 mb-2 flex items-center"><ClipboardList size={14} className="mr-1"/> Weekly Check-in</div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {['Work is great', 'Need Housing Help', 'Job Issues', 'Other'].map(opt => (
-                                                <button 
-                                                    key={opt}
-                                                    onClick={(e) => handleSubmitFeedback(e, job.id, opt)}
-                                                    className="py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-blue-400 hover:text-blue-600 active:bg-blue-50"
-                                                >
-                                                    {opt}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-        </div>
-      );
-  };
-
+  
   const renderAuth = () => {
     const isRegister = activeTab === 'register';
     return (
@@ -1361,7 +1159,7 @@ const App: React.FC = () => {
       </div>
     );
   };
-
+  
   const renderStudentJobs = () => {
     return (
     <div className="p-4 space-y-5 pb-24 h-full overflow-y-auto bg-slate-50">
@@ -1393,8 +1191,6 @@ const App: React.FC = () => {
             const canApply = (db.currentUser?.score || 0) >= job.minScore;
             const appliedCount = getJobStats(job.id).count;
             const isFull = appliedCount >= job.capacity;
-            
-            // Check if user has ANY active application
             const activeApp = db.applications.find(a => a.studentId === db.currentUser?.id && (a.status === 'pending' || a.status === 'approved'));
 
             return (
@@ -1445,7 +1241,221 @@ const App: React.FC = () => {
     </div>
     );
   };
+  
+  const renderApplications = () => {
+      const myApps = db.applications.filter(a => a.studentId === db.currentUser?.id);
 
+      return (
+        <div className="p-4 space-y-5 pb-24 h-full overflow-y-auto bg-slate-50">
+            <header className="px-1 pt-2">
+                <h2 className="text-2xl font-bold text-slate-900">My Internship</h2>
+            </header>
+            <div className="space-y-4">
+                {myApps.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400">No applications yet.</div>
+                ) : (
+                    myApps.map(app => {
+                        const job = db.jobs.find(j => j.id === app.jobId);
+                        if (!job) return null;
+                        const statusColors: Record<string, string> = {
+                            pending: 'bg-yellow-50 text-yellow-600 border-yellow-100',
+                            approved: 'bg-green-50 text-green-600 border-green-100',
+                            rejected: 'bg-red-50 text-red-600 border-red-100'
+                        };
+                        const isApproved = app.status === 'approved';
+
+                        return (
+                            <div 
+                                key={app.id} 
+                                onClick={() => setSelectedJobId(job.id)}
+                                className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 active:scale-[0.98] transition-transform cursor-pointer group relative overflow-hidden"
+                            >
+                                <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <ChevronRight size={24}/>
+                                </div>
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800">{job.title}</h3>
+                                        <p className="text-xs text-slate-500">{job.company}</p>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded-lg text-xs font-bold border ${statusColors[app.status]}`}>
+                                        {app.status.toUpperCase()}
+                                    </div>
+                                </div>
+                                <div className="flex items-center text-xs text-slate-400 mt-2 pt-2 border-t border-slate-50">
+                                    <Clock size={12} className="mr-1"/>
+                                    Applied on {new Date(app.timestamp).toLocaleDateString()}
+                                </div>
+
+                                {isApproved && (
+                                    <div className="mt-4 bg-slate-50 rounded-xl p-3" onClick={(e) => e.stopPropagation()}>
+                                        <div className="text-xs font-bold text-slate-500 mb-2 flex items-center"><ClipboardList size={14} className="mr-1"/> Weekly Check-in</div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {['Work is great', 'Need Housing Help', 'Job Issues', 'Other'].map(opt => (
+                                                <button 
+                                                    key={opt}
+                                                    onClick={(e) => handleSubmitFeedback(e, job.id, opt)}
+                                                    className="py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-blue-400 hover:text-blue-600 active:bg-blue-50"
+                                                >
+                                                    {opt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+        </div>
+      );
+  };
+  
+  const renderStudentServices = () => {
+    return (
+      <div className="p-4 space-y-5 pb-24 bg-slate-50 h-full overflow-y-auto">
+          <header className="px-1 pt-2">
+            <h2 className="text-2xl font-bold text-slate-900">Services</h2>
+            <p className="text-slate-500 text-sm">Essential tools for your trip.</p>
+          </header>
+
+          <div className="grid grid-cols-1 gap-4">
+              <button onClick={() => setActiveTab('emergency')} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center space-y-3 active:scale-95 transition-transform">
+                  <div className="w-12 h-12 bg-red-100 text-red-500 rounded-2xl flex items-center justify-center">
+                      <ShieldAlert size={28} />
+                  </div>
+                  <span className="font-bold text-slate-800">Emergency Card</span>
+              </button>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+              <h3 className="font-bold text-slate-800 mb-3">Pre-Departure Guide</h3>
+              <div className="space-y-3">
+                  {db.guides.map((guide) => (
+                      <div 
+                          key={guide.id} 
+                          onClick={() => setViewingGuide(guide)}
+                          className="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer active:scale-[0.98] transition-transform"
+                      >
+                          <span className="text-sm font-medium text-slate-700">{guide.title}</span>
+                          <ChevronRight size={16} className="text-slate-400"/>
+                      </div>
+                  ))}
+                  {db.guides.length === 0 && (
+                      <div className="text-center text-slate-400 py-4 text-xs">No guides available.</div>
+                  )}
+              </div>
+          </div>
+      </div>
+    );
+  };
+  
+  const renderEmergencyCard = () => {
+    return (
+      <div className="flex flex-col h-full bg-slate-50">
+          <div className="bg-red-600 text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10 shrink-0">
+             <div className="flex items-center mb-6">
+                 <button onClick={() => setActiveTab('services')} className="mr-3 bg-white/20 p-2 rounded-full backdrop-blur-sm"><ChevronRight className="rotate-180" size={20}/></button>
+                 <h2 className="text-2xl font-bold">Emergency Card</h2>
+             </div>
+             <p className="opacity-90 text-sm mb-4">Access these contacts offline.</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-5 -mt-6 pt-10 space-y-6">
+              <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Local Emergency</h3>
+                  <div className="space-y-3">
+                      {[
+                          { name: 'Police / Ambulance', num: '911' },
+                          { name: 'Chinese Consulate', num: '+1-202-495-2266' }
+                      ].map(item => (
+                          <div key={item.num} className="flex items-center justify-between p-3 bg-red-50 rounded-2xl border border-red-100">
+                              <div>
+                                  <div className="font-bold text-slate-800">{item.name}</div>
+                                  <div className="text-red-500 font-mono font-bold">{item.num}</div>
+                              </div>
+                              <a href={`tel:${item.num}`} className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-transform">
+                                  <Phone size={20}/>
+                              </a>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative">
+                  <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Contacts</h3>
+                      <button onClick={() => editingEmergency ? handleSaveEmergency() : setEditingEmergency(true)} className="text-blue-600 text-xs font-bold">
+                          {editingEmergency ? 'Save' : 'Edit'}
+                      </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                      <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700">Family / Emergency Contact</label>
+                          <input disabled={!editingEmergency} placeholder="Name" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.contactName} onChange={e => setEmergencyForm({...emergencyForm, contactName: e.target.value})} />
+                          <input disabled={!editingEmergency} placeholder="Phone (+86...)" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.contactPhone} onChange={e => setEmergencyForm({...emergencyForm, contactPhone: e.target.value})} />
+                      </div>
+                      <div className="w-full h-px bg-slate-100 my-2"></div>
+                      <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700">US Employer / Manager</label>
+                          <input disabled={!editingEmergency} placeholder="Manager Name" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.managerName} onChange={e => setEmergencyForm({...emergencyForm, managerName: e.target.value})} />
+                          <input disabled={!editingEmergency} placeholder="US Phone" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.managerPhone} onChange={e => setEmergencyForm({...emergencyForm, managerPhone: e.target.value})} />
+                          <input disabled={!editingEmergency} placeholder="Email" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none" value={emergencyForm.managerEmail} onChange={e => setEmergencyForm({...emergencyForm, managerEmail: e.target.value})} />
+                      </div>
+                      
+                      <div className="w-full h-px bg-slate-100 my-2"></div>
+                      <div className="space-y-2">
+                         <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-slate-700">Additional Contacts</label>
+                            {editingEmergency && (
+                                <button onClick={handleAddCustomContact} className="text-xs flex items-center text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">
+                                    <Plus size={12} className="mr-1"/> Add
+                                </button>
+                            )}
+                         </div>
+                         
+                         {emergencyForm.others?.map((contact, idx) => (
+                             <div key={contact.id} className="bg-slate-50 p-3 rounded-xl space-y-2 relative">
+                                 {editingEmergency ? (
+                                    <>
+                                        <button onClick={() => handleRemoveCustomContact(contact.id)} className="absolute top-2 right-2 text-red-400 p-1"><X size={14}/></button>
+                                        <input placeholder="Name" className="w-full bg-white p-2 rounded-lg text-sm border border-slate-200 outline-none" value={contact.name} onChange={e => handleUpdateCustomContact(contact.id, 'name', e.target.value)} />
+                                        <div className="flex gap-2">
+                                            <input placeholder="Phone" className="flex-1 bg-white p-2 rounded-lg text-sm border border-slate-200 outline-none" value={contact.phone} onChange={e => handleUpdateCustomContact(contact.id, 'phone', e.target.value)} />
+                                            <input placeholder="Role (e.g. Friend)" className="flex-1 bg-white p-2 rounded-lg text-sm border border-slate-200 outline-none" value={contact.role} onChange={e => handleUpdateCustomContact(contact.id, 'role', e.target.value)} />
+                                        </div>
+                                    </>
+                                 ) : (
+                                     <div className="flex justify-between items-center">
+                                         <div>
+                                            <div className="font-bold text-sm text-slate-800">{contact.name}</div>
+                                            <div className="text-xs text-slate-500">{contact.role}</div>
+                                         </div>
+                                         <div className="flex items-center gap-2">
+                                             <div className="text-right">
+                                                <div className="text-sm font-bold text-slate-700">{contact.phone}</div>
+                                             </div>
+                                             <a href={`tel:${contact.phone}`} className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
+                                                <Phone size={14}/>
+                                             </a>
+                                         </div>
+                                     </div>
+                                 )}
+                             </div>
+                         ))}
+                         {(!emergencyForm.others || emergencyForm.others.length === 0) && !editingEmergency && (
+                             <div className="text-center text-xs text-slate-400 py-2">No additional contacts.</div>
+                         )}
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    );
+  };
+  
   const renderAdminReview = () => {
     const pendingApps = db.applications.filter(a => a.status === 'pending');
     return (
@@ -1502,27 +1512,122 @@ const App: React.FC = () => {
           </header>
 
           <div className="space-y-4">
+               {/* Job Basics */}
                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Title</label>
                    <input value={newJob.title || ''} onChange={e => setNewJob({...newJob, title: e.target.value})} placeholder="e.g. Resort Lifeguard" className="w-full text-lg font-bold text-slate-800 placeholder:text-slate-300 outline-none" />
                </div>
 
-               <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 min-h-[150px]">
-                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description</label>
-                   <textarea value={newJob.description || ''} onChange={e => setNewJob({...newJob, description: e.target.value})} className="w-full text-sm text-slate-600 outline-none resize-none h-40" placeholder="Enter full job details here..." />
+               {/* Program Details Section */}
+               <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                   <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                       <CalendarDays size={16} className="mr-2 text-blue-500"/>
+                       Program Details
+                   </h3>
+                   <div className="grid grid-cols-2 gap-4">
+                       {/* Year Selection */}
+                       <div>
+                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Program Year</label>
+                           <div className="relative">
+                               <select 
+                                   value={newJob.programYear} 
+                                   onChange={e => setNewJob({...newJob, programYear: e.target.value})}
+                                   className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold py-3 px-3 rounded-xl outline-none appearance-none"
+                               >
+                                   {['2023','2024','2025','2026'].map(y => <option key={y} value={y}>{y}</option>)}
+                               </select>
+                               <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={16}/>
+                           </div>
+                       </div>
+                       
+                       {/* Housing */}
+                       <div>
+                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Housing Cost</label>
+                           <input 
+                               className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold py-3 px-3 rounded-xl outline-none focus:border-blue-500 transition-colors" 
+                               value={newJob.housing || ''} 
+                               placeholder="$150/wk" 
+                               onChange={e => setNewJob({...newJob, housing: e.target.value})} 
+                           />
+                       </div>
+
+                       {/* Start Date Range */}
+                       <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Start Dates</label>
+                            <input 
+                               className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold py-3 px-3 rounded-xl outline-none focus:border-blue-500 transition-colors" 
+                               value={newJob.startDateRange || ''} 
+                               placeholder="Jun 15 - Jun 30" 
+                               onChange={e => setNewJob({...newJob, startDateRange: e.target.value})} 
+                           />
+                       </div>
+
+                       {/* End Date (Fixed) */}
+                       <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">End Date</label>
+                            <div className="w-full bg-slate-100 border border-slate-200 text-slate-500 text-sm font-bold py-3 px-3 rounded-xl select-none">
+                                Sept 15, {newJob.programYear}
+                            </div>
+                       </div>
+                   </div>
+               </div>
+
+               {/* Description - Increased Limit */}
+               <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 min-h-[200px]">
+                   <div className="flex justify-between mb-2">
+                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Description (Max 5000)</label>
+                       <span className="text-[10px] text-slate-400">{(newJob.description || '').length}/5000</span>
+                   </div>
+                   <textarea 
+                       value={newJob.description || ''} 
+                       onChange={e => setNewJob({...newJob, description: e.target.value})} 
+                       maxLength={5000}
+                       className="w-full text-sm text-slate-600 outline-none resize-none h-64 leading-relaxed" 
+                       placeholder="Enter full job details here..." 
+                   />
                </div>
                
-               <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <label className="text-xs text-slate-400 block mb-1">Cover Image URL</label>
-                    <input className="w-full text-sm font-semibold text-slate-700 outline-none" placeholder="https://..." value={newJob.image || ''} onChange={e => setNewJob({...newJob, image: e.target.value})} />
+               {/* Image Upload */}
+               <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Cover Image</label>
+                   
+                   {newJob.image ? (
+                       <div className="relative w-full h-40 rounded-xl overflow-hidden mb-3 group">
+                           <img src={newJob.image} className="w-full h-full object-cover" alt="Preview" />
+                           <button 
+                               onClick={() => setNewJob({...newJob, image: ''})}
+                               className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full hover:bg-red-500 transition-colors"
+                           >
+                               <X size={16} />
+                           </button>
+                       </div>
+                   ) : (
+                       <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 mb-3">
+                           <ImageIcon size={32} className="mb-2 opacity-50"/>
+                           <span className="text-xs font-bold">No Image Selected</span>
+                       </div>
+                   )}
+
+                   <div className="flex gap-2 mb-3">
+                       <label className="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200 transition-colors">
+                           <Upload size={16} className="mr-2"/>
+                           Upload
+                           <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                       </label>
+                   </div>
+                   
+                   <div className="relative">
+                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><LinkIcon size={14}/></span>
+                       <input 
+                          className="w-full bg-slate-50 pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium text-slate-600 outline-none border border-transparent focus:border-blue-200 focus:bg-white transition-colors" 
+                          placeholder="Or paste image URL..." 
+                          value={newJob.image?.startsWith('data:') ? '' : newJob.image || ''} 
+                          onChange={e => setNewJob({...newJob, image: e.target.value})} 
+                       />
+                   </div>
                </div>
 
-               {!!newJob.image && (
-                   <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
-                        <img src={newJob.image} className="w-full h-40 object-cover rounded-xl" alt="Preview" />
-                   </div>
-               )}
-
+               {/* Standard Details */}
                <div className="grid grid-cols-2 gap-4">
                    <div className="bg-white p-3 rounded-xl border border-slate-100">
                         <label className="text-xs text-slate-400 block mb-1">Location</label>
@@ -1533,12 +1638,12 @@ const App: React.FC = () => {
                         <input className="w-full text-sm font-semibold outline-none" value={newJob.salary || ''} placeholder="$15/hr" onChange={e => setNewJob({...newJob, salary: e.target.value})} />
                    </div>
                    <div className="bg-white p-3 rounded-xl border border-slate-100">
-                        <label className="text-xs text-slate-400 block mb-1">Min Score</label>
-                        <input type="number" className="w-full text-sm font-semibold outline-none" value={newJob.minScore || ''} onChange={e => setNewJob({...newJob, minScore: Number(e.target.value)})} />
-                   </div>
-                   <div className="bg-white p-3 rounded-xl border border-slate-100">
                         <label className="text-xs text-slate-400 block mb-1">Capacity</label>
                         <input type="number" className="w-full text-sm font-semibold outline-none" value={newJob.capacity || ''} onChange={e => setNewJob({...newJob, capacity: Number(e.target.value)})} />
+                   </div>
+                   <div className="bg-white p-3 rounded-xl border border-slate-100">
+                        <label className="text-xs text-slate-400 block mb-1">Min Score</label>
+                        <input type="number" className="w-full text-sm font-semibold outline-none" value={newJob.minScore || ''} onChange={e => setNewJob({...newJob, minScore: Number(e.target.value)})} />
                    </div>
                </div>
 
@@ -1626,46 +1731,77 @@ const App: React.FC = () => {
 
     return (
         <div className="absolute inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300">
-             <div className="h-64 relative shrink-0">
+             {/* Huge Watermark Layer */}
+             <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-5">
+                 <div className="-rotate-45 transform">
+                     <div className="text-6xl font-black text-slate-900 whitespace-nowrap mb-4">Blueprint Global Exchange</div>
+                     <div className="text-8xl font-black text-slate-900 whitespace-nowrap text-center">蓝途国际</div>
+                 </div>
+             </div>
+
+             <div className="h-64 relative shrink-0 z-10">
                  <img src={job.image} className="w-full h-full object-cover" alt={job.title}/>
                  <button onClick={() => setSelectedJobId(null)} className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 z-10">
                      <ChevronRight className="rotate-180" size={24}/>
                  </button>
                  <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
              </div>
-             <div className="flex-1 px-6 -mt-12 relative overflow-y-auto pb-24">
-                 <div className="bg-white rounded-3xl p-1 mb-4">
-                     <div className="flex flex-wrap gap-2 mb-3">
-                         {job.tags.map(t => <span key={t} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg">{t}</span>)}
+             
+             <div className="flex-1 px-6 -mt-12 relative overflow-y-auto pb-24 z-10">
+                 <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-1 mb-4">
+                     <div className="flex justify-between items-start mb-2">
+                        <div className="flex flex-wrap gap-2">
+                            {job.tags.map(t => <span key={t} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg">{t}</span>)}
+                            <span className="px-2 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg">{job.programYear} Program</span>
+                        </div>
                      </div>
+                     
                      <h1 className="text-3xl font-bold text-slate-900 leading-tight mb-2">{job.title}</h1>
                      <div className="flex items-center text-slate-500 font-medium text-sm mb-6">
                          <Building2 size={16} className="mr-1"/> {job.company}
                      </div>
-                     <div className="grid grid-cols-2 gap-3 mb-8">
+                     
+                     {/* Info Grid */}
+                     <div className="grid grid-cols-2 gap-3 mb-6">
                          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                              <div className="text-slate-400 text-xs font-bold uppercase mb-1">Salary</div>
                              <div className="text-slate-800 font-bold">{job.salary}</div>
                          </div>
                          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                             <div className="text-slate-400 text-xs font-bold uppercase mb-1">Housing</div>
+                             <div className="text-slate-800 font-bold truncate">{job.housing || 'N/A'}</div>
+                         </div>
+                         <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 col-span-2 flex items-center justify-between">
+                             <div>
+                                <div className="text-slate-400 text-xs font-bold uppercase mb-1">Start Dates</div>
+                                <div className="text-slate-800 font-bold">{job.startDateRange}</div>
+                             </div>
+                             <div className="text-right">
+                                <div className="text-slate-400 text-xs font-bold uppercase mb-1">End Date</div>
+                                <div className="text-slate-800 font-bold">{job.endDate}</div>
+                             </div>
+                         </div>
+                         <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 col-span-2">
                              <div className="text-slate-400 text-xs font-bold uppercase mb-1">Location</div>
-                             <div className="text-slate-800 font-bold truncate">{job.location}</div>
+                             <div className="text-slate-800 font-bold flex items-start"><MapPin size={14} className="mr-1 mt-0.5 shrink-0"/> {job.location}</div>
                          </div>
                      </div>
+
                      <h3 className="font-bold text-lg text-slate-800 mb-3">Job Description</h3>
-                     <div className="prose prose-slate prose-sm text-slate-600 mb-10">
+                     <div className="prose prose-slate prose-sm text-slate-600 mb-10 leading-relaxed">
                          <ReactMarkdown>{job.description}</ReactMarkdown>
                      </div>
                  </div>
              </div>
-             <div className="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 p-4 safe-area-pb">
+
+             <div className="absolute bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t border-slate-100 p-4 safe-area-pb z-20">
                  {isApplied ? (
                      <button disabled className="w-full bg-green-100 text-green-700 font-bold py-4 rounded-2xl flex items-center justify-center">
                         <CheckCircle2 size={20} className="mr-2"/> Applied
                      </button>
                  ) : canApply ? (
-                     <button onClick={() => handleApply(job.id)} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-transform flex items-center justify-center">
-                        Apply Now
+                     <button onClick={() => handleApply(job.id)} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-transform flex items-center justify-center relative overflow-hidden">
+                        <span className="relative z-10">Apply Now</span>
                      </button>
                  ) : (
                      <button disabled className="w-full bg-slate-100 text-slate-400 font-bold py-4 rounded-2xl flex items-center justify-center">
@@ -1699,11 +1835,8 @@ const App: React.FC = () => {
         )}
       </main>
       {selectedJobId && renderJobDetail()}
-      {/* Global Modal for Student Details */}
       {viewingStudent && renderStudentModal()}
-      {/* Admin Guide Editor */}
       {editingGuide && renderGuideEditor()}
-      {/* Student Guide Viewer */}
       {viewingGuide && renderGuideDetail()}
 
       {db.currentUser && !selectedJobId && !adminDetailJobId && activeTab !== 'emergency' && (

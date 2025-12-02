@@ -27,6 +27,7 @@ export interface User {
   score: number; // 0-10, immutable by student
   avatar: string;
   emergencyInfo?: EmergencyInfo;
+  programYear?: string; // e.g. "2024"
 }
 
 export interface Job {

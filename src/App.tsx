@@ -69,7 +69,7 @@ const INITIAL_JOBS: Job[] = [
 
 const INITIAL_USERS: UserType[] = [
   { id: 'u1', name: 'Admin', role: 'admin', score: 10, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Admin' },
-  { id: 'u2', name: '李明', role: 'student', score: 7.5, school: '上海交通大学', phone: '13800138000', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=LiMing', emergencyInfo: { contactName: '李父', contactPhone: '13900000000', managerName: 'John Doe', managerPhone: '+1 555-0199', managerEmail: 'john@example.com', others: [] } },
+  { id: 'u2', name: '李明', role: 'student', score: 7.5, school: '上海交通大学', phone: '13800138000', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=LiMing', emergencyInfo: { contactName: '李父', contactPhone: '13900000000', managerName: 'John Doe', managerPhone: '+1 555-0199', managerEmail: 'john@example.com', others: [] }, programYear: '2024' },
 ];
 
 const INITIAL_GUIDES: Guide[] = [
@@ -100,7 +100,8 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(''); 
   const [adminSortBy, setAdminSortBy] = useState<'applicants' | 'score' | 'date'>('date');
   
-  const [regForm, setRegForm] = useState({ name: '', phone: '', code: '', school: '', score: '6.0' });
+  // Registration Form State including programYear
+  const [regForm, setRegForm] = useState({ name: '', phone: '', code: '', school: '', score: '6.0', programYear: '2024' });
   const [isCodeSent, setIsCodeSent] = useState(false);
 
   const [newJob, setNewJob] = useState<Partial<Job>>({ 
@@ -152,10 +153,11 @@ const App: React.FC = () => {
       phone: regForm.phone,
       role: 'student',
       score: parseFloat(regForm.score),
+      programYear: regForm.programYear, // Save the selected year
       avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${regForm.name}`
     };
     setDb(prev => ({ ...prev, users: [...prev.users, newStudent], currentUser: newStudent }));
-    setRegForm({ name: '', phone: '', code: '', school: '', score: '6.0' });
+    setRegForm({ name: '', phone: '', code: '', school: '', score: '6.0', programYear: '2024' });
     setIsCodeSent(false);
     setActiveTab('jobs');
   };
@@ -469,7 +471,7 @@ const App: React.FC = () => {
             <div className="bg-white w-full h-[90%] sm:h-auto sm:max-h-[85%] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300 overflow-hidden">
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10"><h3 className="font-bold text-slate-900">Student Profile</h3><button onClick={() => { setViewingStudent(null); setEditingScore(''); }} className="p-2 bg-slate-100 rounded-full text-slate-500"><X size={20}/></button></div>
                 <div className="p-6 overflow-y-auto flex-1">
-                    <div className="flex items-center mb-6"><img src={viewingStudent.avatar} className="w-20 h-20 rounded-full bg-slate-100 mr-4 border-4 border-white shadow-lg" alt="Avatar"/><div className="flex-1"><div className="text-2xl font-bold text-slate-900 leading-tight mb-1">{viewingStudent.name}</div><div className="text-sm text-slate-500 font-medium mb-2">{viewingStudent.school}</div><div className="flex items-center flex-wrap gap-2"><div className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold uppercase">{viewingStudent.role}</div></div></div></div>
+                    <div className="flex items-center mb-6"><img src={viewingStudent.avatar} className="w-20 h-20 rounded-full bg-slate-100 mr-4 border-4 border-white shadow-lg" alt="Avatar"/><div className="flex-1"><div className="text-2xl font-bold text-slate-900 leading-tight mb-1">{viewingStudent.name}</div><div className="text-sm text-slate-500 font-medium mb-2">{viewingStudent.school}</div><div className="flex items-center flex-wrap gap-2"><div className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold uppercase">{viewingStudent.role}</div><div className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded font-bold uppercase">{viewingStudent.programYear || '2024'}</div></div></div></div>
                     <div className="mb-6"><div className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center"><Briefcase size={14} className="mr-1"/> Job Application</div>{activeApp && appliedJob ? (<div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm"><div className="flex justify-between items-start mb-2"><div className="font-bold text-slate-800">{appliedJob.title}</div><div className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${activeApp.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{activeApp.status}</div></div><div className="text-xs text-slate-500 mb-3">{appliedJob.company}</div>{isAdmin && (<div className="flex gap-2 pt-2 border-t border-slate-50"><button onClick={() => handleStatusChange(activeApp.id, 'approved')} className="flex-1 py-1.5 text-xs font-bold rounded bg-green-50 text-green-600">Approve</button><button onClick={() => handleStatusChange(activeApp.id, 'rejected')} className="flex-1 py-1.5 text-xs font-bold rounded bg-red-50 text-red-600">Reject</button></div>)}</div>) : (<div className="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center"><span className="text-sm text-slate-400">Student has not applied for any job yet.</span></div>)}</div>
                     {isAdmin && (<div className="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-100"><div className="flex justify-between items-center mb-2"><div className="text-xs font-bold text-blue-800 uppercase flex items-center"><Star size={14} className="mr-1"/> English Score</div><div className="text-xl font-bold text-blue-600">{viewingStudent.score}</div></div><div className="flex gap-2"><input type="number" step="0.5" placeholder="New Score" className="flex-1 px-3 py-2 rounded-lg border border-blue-200 text-sm outline-none" value={editingScore} onChange={(e) => setEditingScore(e.target.value)} /><button onClick={() => handleUpdateStudentScore(viewingStudent.id)} disabled={!editingScore} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50">Update</button></div></div>)}
                     <div className="space-y-6"><div><div className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center"><Smartphone size={14} className="mr-1"/> Contact Info</div><div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3"><div className="flex justify-between"><span className="text-sm text-slate-500">Phone</span><span className="text-sm font-bold text-slate-800">{viewingStudent.phone || 'N/A'}</span></div></div></div><div><div className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center"><ShieldAlert size={14} className="mr-1"/> Emergency Info</div><div className="p-4 bg-red-50 rounded-xl border border-red-100 space-y-3"><div className="flex justify-between border-b border-red-100 pb-2"><span className="text-xs text-red-400 font-bold">Family Contact</span><span className="text-sm font-bold text-slate-800">{viewingStudent.emergencyInfo?.contactName || 'N/A'}</span></div><div className="flex justify-between"><span className="text-xs text-red-400 font-bold">Phone</span><span className="text-sm font-bold text-slate-800">{viewingStudent.emergencyInfo?.contactPhone || 'N/A'}</span></div></div></div></div>
@@ -514,6 +516,15 @@ const App: React.FC = () => {
                          <div className="flex space-x-2"><div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors"><Smartphone size={18} className="text-gray-400 mr-3"/><input className="bg-transparent outline-none text-sm w-full" placeholder="手机号" value={regForm.phone} onChange={e => setRegForm({...regForm, phone: e.target.value})}/></div><button onClick={handleSendCode} disabled={isCodeSent} className="bg-blue-100 text-blue-700 px-3 rounded-xl text-xs font-bold whitespace-nowrap">{isCodeSent ? '已发送' : '验证码'}</button></div>
                          <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors"><ShieldCheck size={18} className="text-gray-400 mr-3"/><input className="bg-transparent outline-none text-sm w-full" placeholder="验证码 (1234)" value={regForm.code} onChange={e => setRegForm({...regForm, code: e.target.value})}/></div>
                          <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors"><Star size={18} className="text-gray-400 mr-3"/><input type="number" step="0.5" max="10" className="bg-transparent outline-none text-sm w-full" placeholder="预估英语评分 (6-10)" value={regForm.score} onChange={e => setRegForm({...regForm, score: e.target.value})}/></div>
+                         <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:bg-white focus-within:border-blue-500 transition-colors">
+                            <CalendarDays size={18} className="text-gray-400 mr-3"/>
+                            <select className="bg-transparent outline-none text-sm w-full text-slate-600" value={regForm.programYear} onChange={e => setRegForm({...regForm, programYear: e.target.value})}>
+                                <option value="2023">2023 Program</option>
+                                <option value="2024">2024 Program</option>
+                                <option value="2025">2025 Program</option>
+                                <option value="2026">2026 Program</option>
+                            </select>
+                         </div>
                      </div>
                      <button onClick={handleRegister} className="w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-200 active:scale-95 transition-transform mt-2">立即注册</button><button onClick={() => setActiveTab('login')} className="w-full text-slate-400 text-xs py-2">返回登录</button>
                 </div>
@@ -531,12 +542,24 @@ const App: React.FC = () => {
   };
   
   const renderStudentJobs = () => {
+    // Filter jobs based on student's selected Program Year
+    const filteredJobs = db.jobs.filter(j => 
+        j.programYear === db.currentUser?.programYear && 
+        (j.title.toLowerCase().includes(searchQuery.toLowerCase()) || j.location.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
     return (
     <div className="p-4 space-y-5 pb-24 h-full overflow-y-auto bg-slate-50">
-      <header className="flex justify-between items-end px-1 pt-2"><div><div className="text-blue-500 text-xs font-bold uppercase tracking-wider mb-1">Blueprint Exchange</div><h2 className="text-2xl font-bold text-slate-800">Job Board</h2></div><div className="bg-white text-blue-700 px-3 py-1.5 rounded-xl text-sm font-bold flex items-center shadow-sm border border-blue-50"><Star size={14} className="mr-1 fill-blue-700"/>Score: {db.currentUser?.score}</div></header>
+      <header className="flex justify-between items-end px-1 pt-2"><div><div className="text-blue-500 text-xs font-bold uppercase tracking-wider mb-1">Blueprint Exchange</div><h2 className="text-2xl font-bold text-slate-800">Job Board ({db.currentUser?.programYear})</h2></div><div className="bg-white text-blue-700 px-3 py-1.5 rounded-xl text-sm font-bold flex items-center shadow-sm border border-blue-50"><Star size={14} className="mr-1 fill-blue-700"/>Score: {db.currentUser?.score}</div></header>
       <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center text-slate-400"><Search size={20} className="mr-3 ml-1"/><input className="bg-transparent outline-none w-full text-slate-700 placeholder:text-slate-400" placeholder="Search jobs, states..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/></div>
       <div className="space-y-4">
-        {db.jobs.filter(j => j.title.toLowerCase().includes(searchQuery.toLowerCase()) || j.location.toLowerCase().includes(searchQuery.toLowerCase())).map(job => {
+        {filteredJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                <CalendarDays size={48} className="mb-2" />
+                <p>No jobs found for {db.currentUser?.programYear}</p>
+            </div>
+        ) : (
+            filteredJobs.map(job => {
             const canApply = (db.currentUser?.score || 0) >= job.minScore;
             const appliedCount = getJobStats(job.id).count;
             const isFull = appliedCount >= job.capacity;
@@ -554,7 +577,8 @@ const App: React.FC = () => {
                 <div className="p-4"><h3 className="font-bold text-lg text-slate-800 mb-1">{job.title}</h3><div className="flex justify-between items-center mt-2"><div className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{job.salary}</div><div className="flex items-center text-xs text-slate-400"><Users size={12} className="mr-1"/> {appliedCount}/{job.capacity}</div></div></div>
             </div>
             );
-        })}
+        })
+        )}
       </div>
     </div>
     );

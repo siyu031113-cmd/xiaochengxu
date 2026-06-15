@@ -83,7 +83,7 @@ const INITIAL_USERS: UserType[] = [
   { id: 'u1', name: 'Admin', role: 'admin', score: 10, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Admin' },
   { id: 'u2', name: '李明', role: 'student', score: 7.5, school: '上海交通大学', phone: '13800138000', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=LiMing', emergencyInfo: { contactName: '李父', contactPhone: '13900000000', managerName: 'John Doe', managerPhone: '+1 555-0199', managerEmail: 'john@example.com', others: [] } },
 ];
-
+ 
 const INITIAL_GUIDES: Guide[] = [
     { id: 'g1', title: 'Visa Interview Tips', content: '### J-1 Visa Interview Guide\n\n1. **Be Confident**: Speak clearly and confidently.\n2. **Know Your Job**: Be ready to explain what you will be doing.\n3. **Intent to Return**: Clearly state your plan to return to China after the program.', updateDate: '2023-10-01' },
     { id: 'g2', title: 'Packing List', content: '### Essential Packing List\n\n- Passport & DS-2019\n- Power Adapter (US Type)\n- Personal Medicine\n- Comfortable Shoes for work\n- Warm jacket (even for summer nights)', updateDate: '2023-10-05' },

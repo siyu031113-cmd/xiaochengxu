@@ -76,4 +76,3 @@ export const generateCoverImage = async (prompt: string): Promise<string | null>
   }
 };
 
-#1
